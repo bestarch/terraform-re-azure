@@ -73,6 +73,12 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
   network_security_group_id = azurerm_network_security_group.sg.id
 }
 
+locals {
+  node_external_ips = {
+    for idx in range(3) : idx => azurerm_public_ip.publicip[idx].ip_address
+  }
+}
+
 
 resource "azurerm_virtual_machine" "vm" {
   count               = 3
@@ -90,11 +96,11 @@ resource "azurerm_virtual_machine" "vm" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "Canonical"
+    publisher = var.vm_publisher
     # offer     = "0001-com-ubuntu-server-jammy"
     # sku       = "22_04-lts"
     offer     = var.vm_type
-    sku       = "server"
+    sku       = var.vm_sku
     version   = "latest"
   }
 
@@ -108,6 +114,20 @@ resource "azurerm_virtual_machine" "vm" {
     computer_name  = "${var.prefix}-vm-${count.index}"
     admin_username = var.username
     admin_password = var.password
+    custom_data = templatefile(
+    "${path.module}/${count.index == 0 ? "/scripts/create_cluster.sh" : "/scripts/join_cluster.sh"}",
+    {
+      redis_tar_file = var.redis_tar_file,
+      redis_admin = var.cluster_admin_username,
+      redis_pwd = var.cluster_admin_password,
+      create_cluster = var.create_cluster
+      cluster_name = var.cluster_name
+      time_zone = var.time_zone
+      redis_user = var.redis_user
+      node_external_ips  = azurerm_public_ip.publicip[count.index].ip_address
+      first_node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address
+    }
+  )
   }
   os_profile_linux_config {
     disable_password_authentication = false

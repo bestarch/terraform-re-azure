@@ -1,0 +1,85 @@
+#!/bin/bash
+log_file="/startup.log"
+
+# Log debugging variables
+log_debug_info() {
+  echo "Debugging Variables:" > $${log_file}
+  echo "Redis Tar File: ${redis_tar_file}" >> $${log_file}
+  echo "Redis Admin: ${redis_admin}" >> $${log_file}
+  echo "Redis Password: ${redis_pwd}" >> $${log_file}
+  echo "First Node Internal IP: ${first_node_internal_ip}" >> $${log_file}
+  echo "Node External IPs: ${node_external_ips}" >> $${log_file}
+  echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
+  echo "Time Zone: ${time_zone}" >> $${log_file}
+  echo "Create cluster : ${create_cluster}" >> $${log_file}
+}
+
+# Install Redis
+install_redis() {
+  echo "Setting time zone..." >> $${log_file} && \
+  sudo timedatectl set-timezone "${time_zone}" && \
+#  timedatectl >> $${log_file} && \
+  echo "Installing Redis..." >> $${log_file}
+  sudo yum install wget dnsutils net-tools -y && \
+  echo "net.ipv4.ip_local_port_range = 30000 65535" | sudo tee -a /etc/sysctl.conf && \
+  echo "DNSStubListener=no" | sudo tee -a /etc/systemd/resolved.conf && \
+  sudo mv /etc/resolv.conf /etc/resolv.conf.orig && \
+  sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf && \
+  sudo service systemd-resolved restart && \
+  sudo wget -O "/opt/${redis_tar_file}" "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar" && \
+  sudo tar -xvf "/opt/${redis_tar_file}" -C /opt/ && \
+  cd /opt && \
+  sudo ./install.sh -y && \
+  rm /opt/${redis_tar_file} && \
+  #sudo usermod -aG redislabs ${redis_user}
+}
+
+# Wait for Redis services to start
+wait_for_services() {
+  echo "Checking node bootstrap status and address..." >> $${log_file}
+  echo "curl: https://${first_node_internal_ip}:9443/v1/bootstrap" >> $${log_file}
+  while true; do
+    # Get the JSON response
+    response=$(curl -s -k -u "${redis_admin}:${redis_pwd}" https://${first_node_internal_ip}:9443/v1/bootstrap)
+    echo "Reponse: $${response}" >> $${log_file}
+    
+    # Parse the JSON to check for state and address
+    state_idle=$(echo "$${response}" | jq -e '.bootstrap_status.state == "idle"' 2>/dev/null)
+    address_available=$(echo "$${response}" | jq -e '.local_node_info.available_addresses[] | select(.address == "${first_node_internal_ip}")' 2>/dev/null)
+
+    if [[ "$${state_idle}" == "true" && -n "$${address_available}" ]]; then
+      echo "Node bootstrap is completed and address ${first_node_internal_ip} is available." >> $${log_file}
+      break
+    else
+      echo "Bootstrap state or address not ready. Retrying in 5 seconds..." >> $${log_file}
+    fi
+    sleep 5
+  done
+}
+
+
+# Create Redis cluster
+create_redis_cluster() {
+  echo "Creating Redis cluster:" >> $${log_file}
+  echo "sudo /opt/redislabs/bin/rladmin cluster create addr ${first_node_internal_ip} \
+      external_addr ${node_external_ips} \
+      name ${cluster_name} register_dns_suffix \
+      username ${redis_admin} password '\"${redis_pwd}\"'" >> $${log_file}
+
+  sudo /opt/redislabs/bin/rladmin cluster create addr ${first_node_internal_ip} \
+    external_addr ${node_external_ips} \
+    name ${cluster_name} register_dns_suffix \
+    username ${redis_admin} password ${redis_pwd}
+  echo "Cluster created." >> $${log_file}
+}
+
+# Main function
+main() {
+  log_debug_info
+  install_redis
+  wait_for_services
+  create_redis_cluster
+}
+
+# Execute the main function
+main

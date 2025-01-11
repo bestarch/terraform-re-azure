@@ -28,6 +28,19 @@ variable "vm_size" {
   default     = "Standard_E4ads_v5"
 }
 
+variable "vm_sku" {
+  description = "VM SKU"
+  type        = string
+  default     = "server"
+}
+
+variable "vm_publisher" {
+  description = "VM publisher"
+  type        = string
+  default     = "Canonical"
+}
+
+
 variable "vm_type" {
   description = "VM type"
   type        = string
@@ -52,6 +65,20 @@ variable "cluster_name" {
   default     = "redis-poc.dlqueue.com"
 }
 
+variable "redis_user" {
+  description = "User for redis node"
+  type        = string
+  default     = "redis-user"
+}
+
+
+variable "time_zone" {
+  description = "Time zone"
+  type        = string
+  default     = "Asia/Kolkata"
+}
+
+
 variable "cluster_admin_username" {
   description = "username of the cluster admin like admin@example.com"
   type        = string
@@ -71,3 +98,15 @@ variable "vm_tag" {
     owner = "abhishek"
   }
 }
+
+variable "redis_tar_file" {
+  description = "Redis tar file to download"
+  type        = string
+}
+
+variable "create_cluster" {
+  description = "Create Redis cluster"
+  type        = bool
+  default     = true
+}
+
