@@ -5,8 +5,8 @@ log_file="/startup.log"
 log_debug_info() {
   echo "Debugging Variables:" > $${log_file}
   echo "Redis Tar File: ${redis_tar_file}" >> $${log_file}
-  echo "Redis Admin: ${redis_admin}" >> $${log_file}
-  echo "Redis Password: ${redis_pwd}" >> $${log_file}
+  echo "Redis Cluster Admin: ${cluster_admin_username}" >> $${log_file}
+  echo "Redis Cluster Password: ${cluster_admin_password}" >> $${log_file}
   echo "First Node Internal IP: ${first_node_internal_ip}" >> $${log_file}
   echo "Node External IPs: ${node_external_ips}" >> $${log_file}
   echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
@@ -16,8 +16,8 @@ log_debug_info() {
 
 # Install Redis
 install_redis() {
-  echo "Setting time zone..." >> $${log_file} && \
-  sudo timedatectl set-timezone "${time_zone}" && \
+#  echo "Setting time zone..." >> $${log_file} && \
+#  sudo timedatectl set-timezone "${time_zone}" && \
 #  timedatectl >> $${log_file} && \
   echo "Installing Redis..." >> $${log_file}
   sudo yum install wget dnsutils net-tools -y && \
@@ -29,18 +29,18 @@ install_redis() {
   sudo wget -O "/opt/${redis_tar_file}" "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar" && \
   sudo tar -xvf "/opt/${redis_tar_file}" -C /opt/ && \
   cd /opt && \
-  sudo ./install.sh -y && \
-  rm /opt/${redis_tar_file} && \
+  sudo ./install.sh -y 
+  #rm /opt/${redis_tar_file} && \
   #sudo usermod -aG redislabs ${redis_user}
 }
 
 # Wait for Redis services to start
 wait_for_services() {
   echo "Checking node bootstrap status and address..." >> $${log_file}
-  echo "Curl: https://${cluster_name}:9443/v1/bootstrap" >> $${log_file}
+  echo "Curl: https://${first_node_internal_ip}:9443/v1/bootstrap" >> $${log_file}
   while true; do
     # Get the JSON response
-    response=$(curl -s -k -u "${redis_admin}:${redis_pwd}" https://${cluster_name}:9443/v1/bootstrap)
+    response=$(curl -s -k -u "${cluster_admin_username}:${cluster_admin_password}" https://${first_node_internal_ip}:9443/v1/bootstrap)
     echo "Reponse: $${response}" >> $${log_file}
     
     # Parse the JSON to check for state and address
@@ -62,7 +62,7 @@ wait_for_services() {
 join_redis_cluster() {
   echo "Waiting for Master node to create Redis Cluster..." >> $${log_file}
   URL="https://${first_node_internal_ip}:9443/v1/cluster/check"
-  CREDENTIALS="${redis_admin}:${redis_pwd}"
+  CREDENTIALS="${cluster_admin_username}:${cluster_admin_password}"
 
   while true; do
     # Send the curl request and store the response
@@ -74,11 +74,11 @@ join_redis_cluster() {
       echo "Joining cluster..." >> $${log_file}
       echo "sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
             external_addr ${node_external_ips} \
-            username ${redis_admin} password '\"${redis_pwd}\"'" >> $${log_file}
+            username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
 
       sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
             external_addr ${node_external_ips} \
-            username ${redis_admin} password ${redis_pwd} >> $${log_file} 2>&1
+            username ${cluster_admin_username} password ${cluster_admin_password} >> $${log_file} 2>&1
       break
     else
       echo "Master node is not ready. Retrying in 3 seconds..." >> $${log_file}

@@ -115,17 +115,18 @@ resource "azurerm_virtual_machine" "vm" {
     admin_username = var.username
     admin_password = var.password
     custom_data = templatefile(
-    "${path.module}/${count.index == 0 ? "/scripts/create_cluster.sh" : "/scripts/join_cluster.sh"}",
+    "${path.module}/${count.index == 0 ? "scripts/create_cluster.sh" : "scripts/join_cluster.sh"}",
     {
       redis_tar_file = var.redis_tar_file,
-      redis_admin = var.cluster_admin_username,
-      redis_pwd = var.cluster_admin_password,
-      create_cluster = var.create_cluster
-      cluster_name = var.cluster_name
-      time_zone = var.time_zone
-      redis_user = var.redis_user
-      node_external_ips  = azurerm_public_ip.publicip[count.index].ip_address
-      first_node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address
+      cluster_admin_username = var.cluster_admin_username,
+      cluster_admin_password = var.cluster_admin_password,
+      create_cluster = var.create_cluster,
+      cluster_name = var.cluster_name,
+      time_zone = var.time_zone,
+      redis_user = var.redis_user,
+      node_external_ips  = azurerm_public_ip.publicip[count.index].ip_address,
+      node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address,
+      first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address
     }
   )
   }
