@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+    
+    environment {
+        CLUSTER_NAME = credentials('CLUSTER_NAME')
+        CLUSTER_USER_NAME =  credentials('CLUSTER_USER_NAME')
+        CLUSTER_PASSWORD = credentials('CLUSTER_PASSWORD')
+    }
+
+    stages {
+        stage('build') {
+            steps {
+                echo 'Installing Redis database'
+            }
+        }
+     
+        stage('deploy') {
+            steps {
+                git branch: 'main', url: 'https://github.com/bestarch/terraform-redis-enterprise-azure.git'
+                sh 'python3 deploy.py --deployfile deployment-configuration-file.json'
+            }
+        }
+    }
+}
