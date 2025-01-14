@@ -17,7 +17,7 @@ pipeline {
         stage('deploy') {
             steps {
                 git branch: 'main', url: 'https://github.com/bestarch/terraform-redis-enterprise-azure.git'
-                sh 'python3 deploy.py'
+                sh 'python3 deploy.py --secret "${CLUSTER_NAME}" --secret "${CLUSTER_USER_NAME}" --secret "${CLUSTER_PASSWORD}" '
             }
         }
     }

@@ -36,7 +36,7 @@ def deployDB():
 
     # Create the database
     url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
-    print (url)
+    print (f"Cluster url: {url}")
     response = requests.post(url, verify=False, auth = HTTPBasicAuth(CLUSTER_USER_NAME, CLUSTER_PASSWORD), json=json.dumps(payload))
     try:
         result = response.json()
