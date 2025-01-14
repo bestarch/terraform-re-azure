@@ -4,13 +4,32 @@ import json
 import requests # REST requests
 from requests.auth import HTTPBasicAuth
 import time
+import argparse
 
 
 def deployDB():
-    CLUSTER_NAME = os.environ.get('CLUSTER_NAME')
-    #REDIS_SERVER_PORT = os.environ.get('CLUSTER_PORT')
-    CLUSTER_USER_NAME = os.environ.get('CLUSTER_USER_NAME')
-    CLUSTER_PASSWORD = os.environ.get('CLUSTER_PASSWORD')
+    
+    parser = argparse.ArgumentParser(description="Python script using Jenkins credentials.")
+    parser.add_argument('--CLUSTER_NAME', type=str, help='The API key')
+    parser.add_argument('--CLUSTER_USER_NAME', type=str, help='The DB password')
+    parser.add_argument('--CLUSTER_PASSWORD', type=str, help='SSH username')
+  
+
+    args = parser.parse_args()
+
+    CLUSTER_NAME = args.CLUSTER_NAME
+    CLUSTER_USER_NAME = args.CLUSTER_USER_NAME
+    CLUSTER_PASSWORD = args.CLUSTER_PASSWORD
+
+    # Accessing command-line arguments
+    print(f"CLUSTER_NAME: {CLUSTER_NAME}")
+    print(f"CLUSTER_USER_NAME: {CLUSTER_USER_NAME}")
+    print(f"CLUSTER_PASSWORD: {CLUSTER_PASSWORD}")
+
+
+    # CLUSTER_NAME = os.environ.get('CLUSTER_NAME')
+    # CLUSTER_USER_NAME = os.environ.get('CLUSTER_USER_NAME')
+    # CLUSTER_PASSWORD = os.environ.get('CLUSTER_PASSWORD')
 
     print(f"Env variables:: CLUSTER_NAME:{CLUSTER_NAME}, CLUSTER_USER_NAME:{CLUSTER_USER_NAME}, CLUSTER_PASSWORD:{CLUSTER_PASSWORD}")
 
