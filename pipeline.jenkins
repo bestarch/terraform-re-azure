@@ -25,7 +25,7 @@ pipeline {
                     // Access your credentials as environment variables
                     echo "Cluster name: ${CLUSTER_NAME}"
                     echo "Cluster username: ${CLUSTER_USER_NAME}"
-                    echo Cluster password: ${CLUSTER_PASSWORD}"
+                    echo "Cluster password: ${CLUSTER_PASSWORD}"
                     
                     // Running Python script with credentials passed as environment variables
                     sh '''
