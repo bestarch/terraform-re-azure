@@ -60,6 +60,7 @@ def deployDB():
 
     response = requests.post(
         url,
+        verify=False,
         headers=headers,
         auth=HTTPBasicAuth("admin@example.com", "admin"),
         json=payload  
