@@ -41,7 +41,7 @@ def deployDB():
 
     payload = {
       "name": "stagDB-jenkins",
-      "memory_size": 12582912,
+      "memory_size": 12884901888,
       "type": "redis",
       "authentication_redis_pass": "admin",
       "proxy_policy": "all-nodes",
@@ -49,8 +49,8 @@ def deployDB():
     }
 
     # Create the database
-    url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
-    #url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
+    #url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
+    url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
     print (f"Cluster url: {url}")
     print (f"Payload: {payload}")
     
@@ -62,7 +62,8 @@ def deployDB():
         url,
         verify=False,
         headers=headers,
-        auth=HTTPBasicAuth(CLUSTER_USER_NAME, CLUSTER_PASSWORD),
+        #auth=HTTPBasicAuth(CLUSTER_USER_NAME, CLUSTER_PASSWORD),
+        auth=HTTPBasicAuth("admin@example.com", "admin"),
         json=payload  
     )
 
