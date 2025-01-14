@@ -17,21 +17,7 @@ pipeline {
         stage('deploy') {
             steps {
                 git branch: 'main', url: 'https://github.com/bestarch/terraform-redis-enterprise-azure.git'
-                withCredentials([
-                    string(credentialsId: 'CLUSTER_NAME', variable: 'CLUSTER_NAME'),
-                    string(credentialsId: 'CLUSTER_USER_NAME', variable: 'CLUSTER_USER_NAME'),
-                    string(credentialsId: 'CLUSTER_PASSWORD', variable: 'CLUSTER_PASSWORD')
-                ]) {
-                    // Access your credentials as environment variables
-                    echo "Cluster name: ${CLUSTER_NAME}"
-                    echo "Cluster username: ${CLUSTER_USER_NAME}"
-                    echo "Cluster password: ${CLUSTER_PASSWORD}"
-                    
-                    // Running Python script with credentials passed as environment variables
-                    sh '''
-                    python3 deploy.py --CLUSTER_NAME "${CLUSTER_NAME}" --CLUSTER_USER_NAME "${CLUSTER_USER_NAME}" --CLUSTER_PASSWORD "${CLUSTER_PASSWORD}"
-                    '''
-                }
+                sh 'python3 deploy.py'
             }
         }
     }
