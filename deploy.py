@@ -53,7 +53,19 @@ def deployDB():
     url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
     print (f"Cluster url: {url}")
     print (f"Payload: {payload}")
-    response = requests.post(url, verify=False, auth = HTTPBasicAuth("admin@example.com", "admin"), json=json.dumps(payload))
+    
+    headers = {
+      "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        auth=HTTPBasicAuth("admin@example.com", "admin"),
+        json=payload  
+    )
+
+    #response = requests.post(url, verify=False, auth = HTTPBasicAuth("admin@example.com", "admin"), json=json.dumps(payload))
     try:
         result = response.json()
         print(result)
