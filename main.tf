@@ -36,18 +36,23 @@ resource "azurerm_subnet" "subnet" {
   name                 = "${var.prefix}-internal"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  #address_prefixes     = [var.subnet_cidr]
   address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(3), tostring(count.index))]
 }
 
-resource "azurerm_public_ip" "publicip" {
-  count               = 3
-  name                = "${var.prefix}-public-ip-${count.index}"
-  location            = var.region
-  resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones = [ "${count.index + 1}" ]
+# resource "azurerm_public_ip" "publicip" {
+#   count               = 3
+#   name                = "${var.prefix}-public-ip-${count.index}"
+#   location            = var.region
+#   resource_group_name = azurerm_resource_group.rg.name
+#   allocation_method   = "Static"
+#   sku                 = "Standard"
+#   zones = [ "${count.index + 1}" ]
+# }
+
+data "azurerm_public_ip" "pips" {
+  for_each           = toset(var.ip_names)
+  name               = each.value
+  resource_group_name = var.resource_grp_containing_pips
 }
 
 
@@ -59,11 +64,11 @@ resource "azurerm_network_interface" "nic" {
 
   ip_configuration {
     name                          = "ip-configuration-1"
-    #subnet_id                     = azurerm_subnet.subnet1.id
     #subnet_id                     = element(azurerm_subnet.subnet.*.id, count.index)
     subnet_id                     = azurerm_subnet.subnet[count.index].id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.publicip[count.index].id
+    #public_ip_address_id          = azurerm_public_ip.publicip[count.index].id
+    public_ip_address_id          = data.azurerm_public_ip.pips[var.ip_names[count.index]].id
   }
 }
 
@@ -73,11 +78,11 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
   network_security_group_id = azurerm_network_security_group.sg.id
 }
 
-locals {
-  node_external_ips = {
-    for idx in range(3) : idx => azurerm_public_ip.publicip[idx].ip_address
-  }
-}
+# locals {
+#   node_external_ips = {
+#     for idx in range(3) : idx => azurerm_public_ip.publicip[idx].ip_address
+#   }
+# }
 
 
 resource "azurerm_virtual_machine" "vm" {
@@ -124,7 +129,7 @@ resource "azurerm_virtual_machine" "vm" {
       cluster_name = var.cluster_name,
       time_zone = var.time_zone,
       redis_user = var.redis_user,
-      node_external_ips  = azurerm_public_ip.publicip[count.index].ip_address,
+      node_external_ips  = data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address,
       node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address,
       first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address
     }

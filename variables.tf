@@ -16,12 +16,6 @@ variable "vnet_cidr" {
   default     = "10.0.0.0/16"
 }
 
-variable "subnet_cidr" {
-  description = "Subnet CIDR block"
-  type        = string
-  default     = "10.0.2.0/24"
-}
-
 variable "vm_size" {
   description = "VM size"
   type        = string
@@ -108,5 +102,15 @@ variable "create_cluster" {
   description = "Create Redis cluster"
   type        = bool
   default     = true
+}
+
+variable "ip_names" {
+  description = "Public IP addresses of that needs to be associated to Redis nodes"
+  type = list(string)
+}
+
+variable "resource_grp_containing_pips" {
+  description = "Resource group which contains public IP addresses"
+  type        = string
 }
 
