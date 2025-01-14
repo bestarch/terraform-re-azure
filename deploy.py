@@ -40,23 +40,19 @@ def deployDB():
     print("Create redis database")
 
     payload = {
-        "name": "stagDB",
+        "name": "stagDB-jenkins",
         "memory_size": 12582912,
         "type": "redis",
-        "module_list": [
-          {
-            "module_name": "search"
-          },
-          {
-            "module_name": "json"
-          }
-        ]
+        "authentication_redis_pass": "admin",
+        "proxy_policy": "all-nodes",
+        "replication": False
       }
 
     # Create the database
     #url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
     url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
     print (f"Cluster url: {url}")
+    print (f"Payload: {payload}")
     response = requests.post(url, verify=False, auth = HTTPBasicAuth("admin@example.com", "admin"), json=json.dumps(payload))
     try:
         result = response.json()
