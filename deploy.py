@@ -50,8 +50,8 @@ def deployDB():
 
     # Create the database
     #url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
-    url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
-    print (f"Cluster url: {url}")
+    primary_url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
+    print (f"Cluster url: {primary_url}")
     print (f"Payload: {payload}")
     
     headers = {
@@ -59,7 +59,7 @@ def deployDB():
     }
 
     response = requests.post(
-        url,
+        primary_url,
         verify=False,
         headers=headers,
         #auth=HTTPBasicAuth(CLUSTER_USER_NAME, CLUSTER_PASSWORD),
@@ -69,13 +69,32 @@ def deployDB():
 
     try:
         result = response.json()
-        print(result)
-        return result
+
+        dr_url = "https://redis-poc-dr.dlqueue.com:9443/v1/bdbs"
+        payload_dr = {
+        "name": "stagDB-jenkins-dr",
+        "memory_size": 12884901888,
+        "type": "redis",
+        "proxy_policy": "all-nodes",
+        "replication": False
+        }
+
+        response_dr = requests.post(
+            dr_url,
+            verify=False,
+            headers=headers,
+            auth=HTTPBasicAuth("admin@example.com", "admin"),
+            json=payload_dr  
+        )
+
+        result = response_dr.json()
+        print(result)  
+        return result     
     except:
         print ('Response is not JSON.')
         print (response)
         return response
-
+    
 
 if __name__ == "__main__":
     deployDB()
