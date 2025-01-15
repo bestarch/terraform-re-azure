@@ -51,7 +51,7 @@ def deployDB():
     # Create the database
     #url = "https://" + CLUSTER_NAME + ":9443/v1/bdbs"
     primary_url = "https://redis-poc.dlqueue.com:9443/v1/bdbs"
-    print (f"Cluster url: {primary_url}")
+    print (f"Primary Cluster url: {primary_url}")
     print (f"Payload: {payload}")
     
     headers = {
@@ -71,6 +71,7 @@ def deployDB():
         result = response.json()
 
         dr_url = "https://redis-poc-dr.dlqueue.com:9443/v1/bdbs"
+        
         payload_dr = {
         "name": "stagDB-jenkins-dr",
         "memory_size": 12884901888,
@@ -78,6 +79,8 @@ def deployDB():
         "proxy_policy": "all-nodes",
         "replication": False
         }
+        print (f"DR Cluster url: {dr_url}")
+        print (f"Payload DR: {payload_dr}")
 
         response_dr = requests.post(
             dr_url,
