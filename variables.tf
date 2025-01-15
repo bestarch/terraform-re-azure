@@ -4,10 +4,16 @@ variable "prefix" {
   default     = "abhi"
 }
 
-variable "region" {
+variable "primary_region" {
   description = "Geographical region where resources to be created"
   type        = string
   default     = "centralindia"
+}
+
+variable "dr_region" {
+  description = "Geographical region where DR resources to be created"
+  type        = string
+  default     = "southeastasia"
 }
 
 variable "vnet_cidr" {
@@ -15,6 +21,13 @@ variable "vnet_cidr" {
   type        = string
   default     = "10.0.0.0/16"
 }
+
+variable "vnet_cidr_dr" {
+  description = "VNET CIDR block for DR"
+  type        = string
+  default     = "10.1.0.0/16"
+}
+
 
 variable "vm_size" {
   description = "VM size"
@@ -34,8 +47,31 @@ variable "vm_publisher" {
   default     = "Canonical"
 }
 
-
 variable "vm_type" {
+  description = "VM type"
+  type        = string
+  default     = "ubuntu-24_04-lts"
+}
+
+variable "vm_size_dr" {
+  description = "VM size of DR"
+  type        = string
+  default     = "Standard_D4s_v3"
+}
+
+variable "vm_sku_dr" {
+  description = "VM SKU"
+  type        = string
+  default     = "server"
+}
+
+variable "vm_publisher_dr" {
+  description = "VM publisher"
+  type        = string
+  default     = "Canonical"
+}
+
+variable "vm_type_dr" {
   description = "VM type"
   type        = string
   default     = "ubuntu-24_04-lts"
@@ -57,6 +93,12 @@ variable "cluster_name" {
   description = "Full name of Redis cluster such as mycluster.example.com"
   type        = string
   default     = "redis-poc.dlqueue.com"
+}
+
+variable "cluster_name_dr" {
+  description = "Full name of Redis DR cluster such as mycluster-dr.example.com"
+  type        = string
+  default     = "redis-poc-dr.dlqueue.com"
 }
 
 variable "redis_user" {
@@ -105,8 +147,13 @@ variable "create_cluster" {
 }
 
 variable "ip_names" {
-  description = "Public IP addresses of that needs to be associated to Redis nodes"
+  description = "Public IP addresses that needs to be associated to Redis nodes"
   type = list(string)
+}
+
+variable "ip_name_dr" {
+  description = "Public IP address that needs to be associated to Redis node in DR"
+  type = string
 }
 
 variable "resource_grp_containing_pips" {

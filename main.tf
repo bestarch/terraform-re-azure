@@ -20,20 +20,20 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "${var.prefix}-ResourceGrp-tf"
-  location = var.region
+  location = var.primary_region
 }
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.prefix}-vnet"
   address_space       = [var.vnet_cidr]
-  location            = var.region
+  location            = var.primary_region
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 
 resource "azurerm_subnet" "subnet" {
   count                = 3
-  name                 = "${var.prefix}-internal"
+  name                 = "${var.prefix}-internal-${count.index}"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(3), tostring(count.index))]
@@ -42,7 +42,7 @@ resource "azurerm_subnet" "subnet" {
 # resource "azurerm_public_ip" "publicip" {
 #   count               = 3
 #   name                = "${var.prefix}-public-ip-${count.index}"
-#   location            = var.region
+#   location            = var.primary_region
 #   resource_group_name = azurerm_resource_group.rg.name
 #   allocation_method   = "Static"
 #   sku                 = "Standard"
@@ -59,7 +59,7 @@ data "azurerm_public_ip" "pips" {
 resource "azurerm_network_interface" "nic" {
   count               = 3
   name                = "${var.prefix}-nic-${count.index}"
-  location            = var.region
+  location            = var.primary_region
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
@@ -88,7 +88,7 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
 resource "azurerm_virtual_machine" "vm" {
   count               = 3
   name                  = "${var.prefix}-vm-${count.index}"
-  location              = var.region
+  location              = var.primary_region
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic[count.index].id]
   vm_size               = var.vm_size
