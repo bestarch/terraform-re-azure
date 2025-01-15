@@ -39,9 +39,11 @@ def deployDB():
     
     print("Create redis database")
 
+    memory_size = 10737418240 #10G
+
     payload = {
       "name": "stagDB-jenkins",
-      "memory_size": 12884901888,
+      "memory_size": memory_size,
       "type": "redis",
       "authentication_redis_pass": "admin",
       "proxy_policy": "all-nodes",
@@ -74,7 +76,7 @@ def deployDB():
         
         payload_dr = {
         "name": "stagDB-jenkins-dr",
-        "memory_size": 12884901888,
+        "memory_size": memory_size,
         "type": "redis",
         "proxy_policy": "all-nodes",
         "replication": False
