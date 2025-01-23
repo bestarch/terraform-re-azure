@@ -39,15 +39,6 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(3), tostring(count.index))]
 }
 
-# resource "azurerm_public_ip" "publicip" {
-#   count               = 3
-#   name                = "${var.prefix}-public-ip-${count.index}"
-#   location            = var.primary_region
-#   resource_group_name = azurerm_resource_group.rg.name
-#   allocation_method   = "Static"
-#   sku                 = "Standard"
-#   zones = [ "${count.index + 1}" ]
-# }
 
 data "azurerm_public_ip" "pips" {
   for_each           = toset(var.ip_names)
@@ -77,12 +68,6 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
   network_interface_id      = azurerm_network_interface.nic[count.index].id
   network_security_group_id = azurerm_network_security_group.sg.id
 }
-
-# locals {
-#   node_external_ips = {
-#     for idx in range(3) : idx => azurerm_public_ip.publicip[idx].ip_address
-#   }
-# }
 
 
 resource "azurerm_virtual_machine" "vm" {
@@ -114,6 +99,8 @@ resource "azurerm_virtual_machine" "vm" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Premium_LRS"
+    #disk_size_gb = 128
+    
   }
   os_profile {
     computer_name  = "${var.prefix}-vm-${count.index}"

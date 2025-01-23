@@ -1,0 +1,35 @@
+cluster_name = "redis-poc.dlqueue.com"
+cluster_admin_username = "admin@example.com"
+cluster_admin_password = "admin"
+redis_user = "redis-user"
+time_zone = "Asia/Kolkata"
+primary_region = "centralindia"
+
+# Redis Cluster  
+redis_tar_file     = "redislabs-7.8.4-18-rhel9-x86_64.tar"
+create_cluster     = "true"
+
+## RHEL machine specs
+vm_type = "RHEL"
+vm_size = "Standard_E4ads_v5" # or Standard_E8ads_v5
+vm_sku = "95_gen2"
+vm_publisher = "RedHat"
+
+## Ubuntu machine specs
+# vm_type = "0001-com-ubuntu-server-focal"
+# vm_size = "Standard_E4ads_v5" # or Standard_E8ads_v5
+# vm_sku = "20_04-lts-gen2" 
+# vm_publisher = "canonical"
+
+
+ip_names = ["abhi-pip1", "abhi-pip2", "abhi-pip3"]
+resource_grp_containing_pips = "abhi-res"
+
+vnet_cidr = "10.0.0.0/16"
+
+
+
+
+
+
+
