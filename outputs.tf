@@ -6,6 +6,9 @@ output "public_ips" {
 output "public_ips_dr" {
   description = "List of IP addresses for Redis DR nodes"
   value       = [for pip in data.azurerm_public_ip.pip_dr : pip.ip_address]
+  depends_on = [
+    azurerm_virtual_network.vnet_dr
+  ]
 }
 
 output "internal_ips" {

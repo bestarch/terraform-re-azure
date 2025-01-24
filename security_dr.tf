@@ -4,6 +4,9 @@ resource "azurerm_network_security_group" "sg_dr" {
   location            = var.dr_region
   resource_group_name = azurerm_resource_group.rg.name
   tags                = var.vm_tag
+  depends_on = [
+    azurerm_virtual_network.vnet_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "install-ssh-dr" {
@@ -18,6 +21,9 @@ resource "azurerm_network_security_rule" "install-ssh-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "https-ui-dr" {
@@ -32,6 +38,9 @@ resource "azurerm_network_security_rule" "https-ui-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "https-api-dr" {
@@ -46,6 +55,9 @@ resource "azurerm_network_security_rule" "https-api-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "redis-dbs-dr" {
@@ -60,6 +72,9 @@ resource "azurerm_network_security_rule" "redis-dbs-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "redis-sentinel-dr" {
@@ -74,6 +89,9 @@ resource "azurerm_network_security_rule" "redis-sentinel-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "dns-services-dr" {
@@ -88,6 +106,9 @@ resource "azurerm_network_security_rule" "dns-services-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }
 
 resource "azurerm_network_security_rule" "public-ssh-dr" {
@@ -102,4 +123,7 @@ resource "azurerm_network_security_rule" "public-ssh-dr" {
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.sg_dr.name
+  depends_on = [
+    azurerm_network_security_group.sg_dr
+  ]
 }

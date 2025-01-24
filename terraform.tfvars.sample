@@ -6,7 +6,7 @@ redis_user = "redis-user"
 time_zone = "Asia/Kolkata"
 primary_region = "centralindia"
 redis_tar_file_location = "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar"
-create_cluster     = "true"
+create_dr_cluster     = false
 
 ##################### Settings for Primary region #####################
 

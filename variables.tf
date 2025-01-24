@@ -4,6 +4,12 @@ variable "prefix" {
   default     = "abhi"
 }
 
+variable "create_dr_cluster" {
+  description = "Create DR cluster or not. Default is false"
+  type        = bool
+  default     = false
+}
+
 variable "primary_region" {
   description = "Geographical region where resources to be created"
   type        = string
@@ -148,12 +154,6 @@ variable "vm_tag" {
 variable "redis_tar_file_location" {
   description = "Redis tar file to download"
   type        = string
-}
-
-variable "create_cluster" {
-  description = "Create Redis cluster"
-  type        = bool
-  default     = true
 }
 
 variable "ip_names" {

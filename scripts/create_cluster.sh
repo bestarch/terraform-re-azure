@@ -11,7 +11,7 @@ log_debug_info() {
   echo "Node External IPs: ${node_external_ips}" >> $${log_file}
   echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
   echo "Time Zone: ${time_zone}" >> $${log_file}
-  echo "Create cluster : ${create_cluster}" >> $${log_file}
+  echo "Create DR cluster : ${create_dr_cluster}" >> $${log_file}
 }
 
 # Install Redis

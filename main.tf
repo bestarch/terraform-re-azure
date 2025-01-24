@@ -125,7 +125,7 @@ resource "azurerm_virtual_machine" "vm" {
       redis_tar_file_location = var.redis_tar_file_location,
       cluster_admin_username = var.cluster_admin_username,
       cluster_admin_password = var.cluster_admin_password,
-      create_cluster = var.create_cluster,
+      create_dr_cluster = var.create_dr_cluster,
       cluster_name = var.cluster_name,
       time_zone = var.time_zone,
       redis_user = var.redis_user,
