@@ -127,6 +127,16 @@ variable "cluster_admin_password" {
   sensitive = true
 }
 
+variable "node_count_primary" {
+  description = "Number of nodes in primary cluster"
+  type        = number
+}
+
+variable "node_count_dr" {
+  description = "Number of nodes in DR cluster"
+  type        = number
+}
+
 variable "vm_tag" {
   type = map(string)
   default = {
@@ -135,7 +145,7 @@ variable "vm_tag" {
   }
 }
 
-variable "redis_tar_file" {
+variable "redis_tar_file_location" {
   description = "Redis tar file to download"
   type        = string
 }
@@ -151,9 +161,9 @@ variable "ip_names" {
   type = list(string)
 }
 
-variable "ip_name_dr" {
-  description = "Public IP address that needs to be associated to Redis node in DR"
-  type = string
+variable "ip_names_dr" {
+  description = "Public IP addresses that needs to be associated to Redis node in DR"
+  type = list(string)
 }
 
 variable "resource_grp_containing_pips" {

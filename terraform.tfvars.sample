@@ -1,0 +1,44 @@
+########################### Common settings ###########################
+cluster_name = "redis-poc.dlqueue.com"
+cluster_admin_username = "admin@example.com"
+cluster_admin_password = "admin"
+redis_user = "redis-user"
+time_zone = "Asia/Kolkata"
+primary_region = "centralindia"
+redis_tar_file_location = "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar"
+create_cluster     = "true"
+
+##################### Settings for Primary region #####################
+
+vnet_cidr = "10.0.0.0/16"
+ip_names = ["abhi-pip1", "abhi-pip2", "abhi-pip3"]
+resource_grp_containing_pips = "abhi-res"
+
+## RHEL machine specs
+vm_type = "RHEL"
+vm_size = "Standard_E4ads_v5" # or Standard_E8ads_v5
+vm_sku = "95_gen2"
+vm_publisher = "RedHat"
+
+node_count_primary = 3
+
+## Ubuntu machine specs
+# vm_type = "0001-com-ubuntu-server-focal"
+# vm_size = "Standard_E4ads_v5" # or Standard_E8ads_v5
+# vm_sku = "20_04-lts-gen2" 
+# vm_publisher = "canonical"
+
+####################### Settings for DR region ########################
+cluster_name_dr = "redis-poc-dr.dlqueue.com"
+dr_region = "southeastasia"
+vnet_cidr_dr = "10.1.0.0/16"
+ip_names_dr = ["abhi-pip-dr"]
+
+node_count_dr = 1
+
+vm_type_dr = "RHEL"
+vm_size_dr = "Standard_E4ads_v5" # or Standard_E8ads_v5
+vm_sku_dr = "95_gen2"
+vm_publisher_dr = "RedHat"
+
+#######################################################################

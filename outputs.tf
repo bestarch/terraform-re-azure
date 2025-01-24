@@ -5,7 +5,7 @@ output "public_ips" {
 
 output "public_ips_dr" {
   description = "List of IP addresses for Redis DR nodes"
-  value       = data.azurerm_public_ip.pip_dr.ip_address
+  value       = [for pip in data.azurerm_public_ip.pip_dr : pip.ip_address]
 }
 
 output "internal_ips" {
