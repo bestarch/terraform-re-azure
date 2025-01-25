@@ -32,15 +32,15 @@ resource "azurerm_virtual_network" "vnet" {
 
 
 resource "azurerm_subnet" "subnet" {
-  count                = 3
+  count                = var.node_count_primary
   name                 = "${var.prefix}-internal-${count.index}"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(3), tostring(count.index))]
+  address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(var.node_count_primary), tostring(count.index))]
 }
 
 # resource "azurerm_public_ip" "publicip" {
-#   count               = 3
+#   count               = var.node_count_primary
 #   name                = "${var.prefix}-public-ip-${count.index}"
 #   location            = var.primary_region
 #   resource_group_name = azurerm_resource_group.rg.name
@@ -57,7 +57,7 @@ data "azurerm_public_ip" "pips" {
 
 
 resource "azurerm_network_interface" "nic" {
-  count               = 3
+  count               = var.node_count_primary
   name                = "${var.prefix}-nic-${count.index}"
   location            = var.primary_region
   resource_group_name = azurerm_resource_group.rg.name
@@ -73,20 +73,20 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_network_interface_security_group_association" "sg2nic" {
-  count                     = 3
+  count                     = var.node_count_primary
   network_interface_id      = azurerm_network_interface.nic[count.index].id
   network_security_group_id = azurerm_network_security_group.sg.id
 }
 
 # locals {
 #   node_external_ips = {
-#     for idx in range(3) : idx => azurerm_public_ip.publicip[idx].ip_address
+#     for idx in range(var.node_count_primary) : idx => azurerm_public_ip.publicip[idx].ip_address
 #   }
 # }
 
 
 resource "azurerm_virtual_machine" "vm" {
-  count               = 3
+  count               = var.node_count_primary
   name                  = "${var.prefix}-vm-${count.index}"
   location              = var.primary_region
   resource_group_name   = azurerm_resource_group.rg.name
@@ -122,10 +122,10 @@ resource "azurerm_virtual_machine" "vm" {
     custom_data = templatefile(
     "${path.module}/${count.index == 0 ? "scripts/create_cluster.sh" : "scripts/join_cluster.sh"}",
     {
-      redis_tar_file = var.redis_tar_file,
+      redis_tar_file_location = var.redis_tar_file_location,
       cluster_admin_username = var.cluster_admin_username,
       cluster_admin_password = var.cluster_admin_password,
-      create_cluster = var.create_cluster,
+      create_dr_cluster = var.create_dr_cluster,
       cluster_name = var.cluster_name,
       time_zone = var.time_zone,
       redis_user = var.redis_user,

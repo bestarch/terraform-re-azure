@@ -4,14 +4,14 @@ log_file="/startup.log"
 # Log debugging variables
 log_debug_info() {
   echo "Debugging Variables:" > $${log_file}
-  echo "Redis Tar File: ${redis_tar_file}" >> $${log_file}
+  echo "Redis Tar file location: ${redis_tar_file_location}" >> $${log_file}
   echo "Redis Cluster Admin: ${cluster_admin_username}" >> $${log_file}
   echo "Redis Cluster Password: ${cluster_admin_password}" >> $${log_file}
   echo "First Node Internal IP: ${first_node_internal_ip}" >> $${log_file}
   echo "Node External IPs: ${node_external_ips}" >> $${log_file}
   echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
   echo "Time Zone: ${time_zone}" >> $${log_file}
-  echo "Create cluster : ${create_cluster}" >> $${log_file}
+  echo "Create DR cluster : ${create_dr_cluster}" >> $${log_file}
 }
 
 # Install Redis
@@ -26,11 +26,11 @@ install_redis() {
   sudo mv /etc/resolv.conf /etc/resolv.conf.orig && \
   sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf && \
   sudo service systemd-resolved restart && \
-  sudo wget -O "/opt/${redis_tar_file}" "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar" && \
-  sudo tar -xvf "/opt/${redis_tar_file}" -C /opt/ && \
+  sudo wget -O "/opt/redis_enterprise" "${redis_tar_file_location}" && \
+  sudo tar -xvf "/opt/redis_enterprise" -C /opt/ && \
   cd /opt && \
   sudo ./install.sh -y 
-  #rm /opt/${redis_tar_file} && \
+  #rm /opt/redis_enterprise && \
   #sudo usermod -aG redislabs ${redis_user}
 }
 
