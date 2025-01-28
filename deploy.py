@@ -42,12 +42,12 @@ def deployDB():
     memory_size = 10737418240 #10G
 
     payload = {
-      "name": "stagDB-jenkins",
+      "name": "stagDB-SBG56HG",
       "memory_size": memory_size,
       "type": "redis",
       "authentication_redis_pass": "admin",
       "proxy_policy": "all-nodes",
-      "replication": False
+      "replication": True
     }
 
     # Create the database
@@ -75,11 +75,11 @@ def deployDB():
         dr_url = "https://redis-poc-dr.dlqueue.com:9443/v1/bdbs"
         
         payload_dr = {
-        "name": "stagDB-jenkins-dr",
+        "name": "stagDB-SBG56HG-dr",
         "memory_size": memory_size,
         "type": "redis",
         "proxy_policy": "all-nodes",
-        "replication": False
+        "replication": True
         }
         print (f"DR Cluster url: {dr_url}")
         print (f"Payload DR: {payload_dr}")
