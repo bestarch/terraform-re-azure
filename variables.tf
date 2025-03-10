@@ -31,19 +31,19 @@ variable "test_vm_size" {
 variable "test_vm_sku" {
   description = "Test VM SKU"
   type        = string
-  default     = "95_gen2"
+  default     = "20_04-lts-gen2"
 }
 
 variable "test_vm_publisher" {
   description = "Test VM publisher"
   type        = string
-  default     = "RedHat"
+  default     = "canonical"
 }
 
 variable "test_vm_type" {
   description = "Test VM type"
   type        = string
-  default     = "RHEL"
+  default     = "0001-com-ubuntu-server-focal"
 }
 
 variable "primary_region" {

@@ -4,13 +4,16 @@ resource "azurerm_virtual_network" "test_vnet" {
   address_space       = [var.test_vnet_cidr]
   location            = var.primary_region
   resource_group_name = azurerm_resource_group.rg.name
+   depends_on = [
+    azurerm_virtual_network.vnet
+  ]
 }
 
 resource "azurerm_subnet" "test_subnet" {
   count = var.create_test_vm ? 1 : 0
   name                 = "${var.prefix}-test-internal"
   resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.test_vnet[0].name
+  virtual_network_name = azurerm_virtual_network.test_vnet[count.index].name
   address_prefixes     = [cidrsubnet(var.test_vnet_cidr, 1, 1)]
 }
 
@@ -21,6 +24,7 @@ resource "azurerm_public_ip" "test_publicip" {
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones = [ "${count.index}" ]
 }
 
 resource "azurerm_network_interface" "test_nic" {
@@ -31,9 +35,9 @@ resource "azurerm_network_interface" "test_nic" {
 
   ip_configuration {
     name                          = "ip-configuration-2"
-    subnet_id                     = azurerm_subnet.test_subnet[0].id
+    subnet_id                     = azurerm_subnet.test_subnet[count.index].id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.test_publicip[0].id
+    public_ip_address_id          = azurerm_public_ip.test_publicip[count.index].id
   }
 }
 
@@ -46,8 +50,9 @@ resource "azurerm_network_security_group" "test_sg" {
 }
 
 resource "azurerm_network_interface_security_group_association" "test_sg2nic" {
-  network_interface_id      = azurerm_network_interface.test_nic[0].id
-  network_security_group_id = azurerm_network_security_group.test_sg[0].id
+  count = var.create_test_vm ? 1 : 0
+  network_interface_id      = azurerm_network_interface.test_nic[count.index].id
+  network_security_group_id = azurerm_network_security_group.test_sg[count.index].id
 }
 
 resource "azurerm_virtual_machine" "test_vm" {
@@ -55,7 +60,7 @@ resource "azurerm_virtual_machine" "test_vm" {
   name                  = "${var.prefix}-test-vm"
   location              = var.primary_region
   resource_group_name   = azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.test_nic[0].id]
+  network_interface_ids = [azurerm_network_interface.test_nic[count.index].id]
   vm_size               = var.test_vm_size
   zones = [ 1]
   delete_os_disk_on_termination = true
@@ -91,7 +96,7 @@ resource "azurerm_virtual_network_peering" "primary_to_test" {
   name                      = "${var.prefix}-primary-to-test"
   resource_group_name       = azurerm_resource_group.rg.name
   virtual_network_name      = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id = azurerm_virtual_network.test_vnet[0].id
+  remote_virtual_network_id = azurerm_virtual_network.test_vnet[count.index].id
   allow_virtual_network_access = true
 }
 
@@ -99,12 +104,13 @@ resource "azurerm_virtual_network_peering" "test_to_primary" {
   count = var.create_test_vm ? 1 : 0
   name                      = "${var.prefix}-test-to-primary"
   resource_group_name       = azurerm_resource_group.rg.name
-  virtual_network_name      = azurerm_virtual_network.test_vnet[0].name
+  virtual_network_name      = azurerm_virtual_network.test_vnet[count.index].name
   remote_virtual_network_id = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
 }
 
 resource "azurerm_network_security_rule" "test_ssh_access" {
+  count = var.create_test_vm ? 1 : 0
   name                        = "test-SSH-rule"
   priority                    = 2001
   direction                   = "Inbound"
@@ -115,5 +121,5 @@ resource "azurerm_network_security_rule" "test_ssh_access" {
   source_address_prefix       = "0.0.0.0/0"
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.test_sg[0].name
+  network_security_group_name = azurerm_network_security_group.test_sg[count.index].name
 }

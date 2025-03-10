@@ -1,5 +1,5 @@
 ########################### Common settings ###########################
-cluster_name = "redis-poc.dlqueue.com"
+cluster_name = "redis-poc.example.com"
 cluster_admin_username = "admin@example.com"
 cluster_admin_password = "admin"
 redis_user = "redis-user"
@@ -7,6 +7,14 @@ time_zone = "Asia/Kolkata"
 primary_region = "centralindia"
 redis_tar_file_location = "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar"
 create_dr_cluster     = false
+create_test_vm     = false
+
+############### Settings for test VM ################
+test_vnet_cidr = "10.2.0.0/16"
+test_vm_type = "0001-com-ubuntu-server-focal"
+test_vm_size = "Standard_D2s_v3" 
+test_vm_sku = "20_04-lts-gen2"
+test_vm_publisher = "canonical"
 
 ##################### Settings for Primary region #####################
 
@@ -29,7 +37,7 @@ node_count_primary = 3
 # vm_publisher = "canonical"
 
 ####################### Settings for DR region ########################
-cluster_name_dr = "redis-poc-dr.dlqueue.com"
+cluster_name_dr = "redis-poc-dr.example.com"
 dr_region = "southeastasia"
 vnet_cidr_dr = "10.1.0.0/16"
 ip_names_dr = ["abhi-pip-dr"]
