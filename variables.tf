@@ -10,6 +10,42 @@ variable "create_dr_cluster" {
   default     = false
 }
 
+variable "create_test_vm" {
+  description = "Create A test VM to test the Redis database. Default is false"
+  type        = bool
+  default     = false
+}
+
+variable "test_vnet_cidr" {
+  description = "VNET CIDR block for test VM"
+  type        = string
+  default     = "10.2.0.0/16"
+}
+
+variable "test_vm_size" {
+  description = "Size of test VM"
+  type        = string
+  default     = "Standard_D2s_v3"
+}
+
+variable "test_vm_sku" {
+  description = "Test VM SKU"
+  type        = string
+  default     = "95_gen2"
+}
+
+variable "test_vm_publisher" {
+  description = "Test VM publisher"
+  type        = string
+  default     = "RedHat"
+}
+
+variable "test_vm_type" {
+  description = "Test VM type"
+  type        = string
+  default     = "RHEL"
+}
+
 variable "primary_region" {
   description = "Geographical region where resources to be created"
   type        = string

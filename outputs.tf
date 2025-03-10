@@ -16,3 +16,10 @@ output "internal_ips" {
   value = "${azurerm_network_interface.nic.*.private_ip_address}"
 }
 
+output "test_vm_ip" {
+  description = "IP address of test VM"
+  value       = azurerm_public_ip.test_publicip[0].ip_address
+  depends_on = [
+    azurerm_virtual_network.test_vnet
+  ]
+}
