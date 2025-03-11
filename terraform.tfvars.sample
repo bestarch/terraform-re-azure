@@ -8,6 +8,7 @@ primary_region = "centralindia"
 redis_tar_file_location = "https://s3.amazonaws.com/redis-enterprise-software-downloads/7.8.4/redislabs-7.8.4-18-rhel9-x86_64.tar"
 create_dr_cluster     = false
 create_test_vm     = false
+enable_public_ip   = false
 
 ############### Settings for test VM ################
 test_vnet_cidr = "10.2.0.0/16"

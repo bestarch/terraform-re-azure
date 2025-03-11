@@ -16,6 +16,12 @@ variable "create_test_vm" {
   default     = false
 }
 
+variable "enable_public_ip" {
+  description = "Enable public IP for Redis nodes"
+  type        = bool
+  default     = true
+}
+
 variable "test_vnet_cidr" {
   description = "VNET CIDR block for test VM"
   type        = string

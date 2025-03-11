@@ -1,6 +1,6 @@
 output "public_ips" {
-  description = "List of IP addresses for Redis nodes"
-  value       = [for pip in data.azurerm_public_ip.pips : pip.ip_address]
+  description = "List of public IP addresses for Redis nodes"
+  value       = var.enable_public_ip ? [for pip in data.azurerm_public_ip.pips : pip.ip_address] : null
 }
 
 output "public_ips_dr" {

@@ -5,7 +5,6 @@ terraform {
       version = "~> 3.0.2"
     }
   }
-
   required_version = ">= 1.1.0"
 }
 
@@ -16,7 +15,6 @@ provider "azurerm" {
       }
   }
 }
-
 
 resource "azurerm_resource_group" "rg" {
   name     = "${var.prefix}-ResourceGrp-tf"
@@ -39,7 +37,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(var.node_count_primary), tostring(count.index))]
 }
 
-# resource "azurerm_public_ip" "publicip" {
+# resource "azurerm_public_ip" "pips" {
 #   count               = var.node_count_primary
 #   name                = "${var.prefix}-public-ip-${count.index}"
 #   location            = var.primary_region
@@ -55,7 +53,6 @@ data "azurerm_public_ip" "pips" {
   resource_group_name = var.resource_grp_containing_pips
 }
 
-
 resource "azurerm_network_interface" "nic" {
   count               = var.node_count_primary
   name                = "${var.prefix}-nic-${count.index}"
@@ -64,11 +61,11 @@ resource "azurerm_network_interface" "nic" {
 
   ip_configuration {
     name                          = "ip-configuration-1"
-    #subnet_id                     = element(azurerm_subnet.subnet.*.id, count.index)
+    #subnet_id                    = element(azurerm_subnet.subnet.*.id, count.index)
     subnet_id                     = azurerm_subnet.subnet[count.index].id
     private_ip_address_allocation = "Dynamic"
-    #public_ip_address_id          = azurerm_public_ip.publicip[count.index].id
-    public_ip_address_id          = data.azurerm_public_ip.pips[var.ip_names[count.index]].id
+    #public_ip_address_id         = var.enable_public_ip ? azurerm_public_ip.publicip[count.index].id : null
+    public_ip_address_id = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].id : null
   }
 }
 
@@ -83,7 +80,6 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
 #     for idx in range(var.node_count_primary) : idx => azurerm_public_ip.publicip[idx].ip_address
 #   }
 # }
-
 
 resource "azurerm_virtual_machine" "vm" {
   count               = var.node_count_primary
