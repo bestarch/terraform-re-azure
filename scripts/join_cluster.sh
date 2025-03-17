@@ -10,15 +10,12 @@ log_debug_info() {
   echo "First Node Internal IP: ${first_node_internal_ip}" >> $${log_file}
   echo "Node External IPs: ${node_external_ips}" >> $${log_file}
   echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
-  echo "Time Zone: ${time_zone}" >> $${log_file}
+  echo "Enable public IP address for nodes ${enable_public_ip}" >> $${log_file}
   echo "Create DR cluster : ${create_dr_cluster}" >> $${log_file}
 }
 
 # Install Redis
 install_redis() {
-#  echo "Setting time zone..." >> $${log_file} && \
-#  sudo timedatectl set-timezone "${time_zone}" && \
-#  timedatectl >> $${log_file} && \
   echo "Installing Redis..." >> $${log_file}
   sudo yum install wget dnsutils net-tools -y && \
   echo "net.ipv4.ip_local_port_range = 30000 65535" | sudo tee -a /etc/sysctl.conf && \
@@ -72,13 +69,21 @@ join_redis_cluster() {
     # Check if the response contains the expected JSON structure
     if echo "$RESPONSE" | jq -e '.cluster_test_result == true and .nodes[0].node_uid == 1 and .nodes[0].result == true' > /dev/null 2>&1; then
       echo "Joining cluster..." >> $${log_file}
-      echo "sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
-            external_addr ${node_external_ips} \
-            username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
+      if [[ "${enable_public_ip}" == "true" ]]; then
+        echo "sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
+              external_addr ${node_external_ips} \
+              username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
 
-      sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
-            external_addr ${node_external_ips} \
-            username ${cluster_admin_username} password ${cluster_admin_password} >> $${log_file} 2>&1
+        sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
+              external_addr ${node_external_ips} \
+              username ${cluster_admin_username} password ${cluster_admin_password} >> $${log_file} 2>&1
+      else
+        echo "sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
+              username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
+
+        sudo /opt/redislabs/bin/rladmin cluster join nodes ${first_node_internal_ip} \
+              username ${cluster_admin_username} password ${cluster_admin_password} >> $${log_file} 2>&1
+      fi
       break
     else
       echo "Master node is not ready. Retrying in 3 seconds..." >> $${log_file}

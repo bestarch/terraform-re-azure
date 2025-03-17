@@ -155,14 +155,6 @@ variable "redis_user" {
   default     = "redis-user"
 }
 
-
-variable "time_zone" {
-  description = "Time zone"
-  type        = string
-  default     = "Asia/Kolkata"
-}
-
-
 variable "cluster_admin_username" {
   description = "username of the cluster admin like admin@example.com"
   type        = string

@@ -10,15 +10,12 @@ log_debug_info() {
   echo "First Node Internal IP: ${first_node_internal_ip}" >> $${log_file}
   echo "Node External IPs: ${node_external_ips}" >> $${log_file}
   echo "Redis Cluster FQDN: ${cluster_name}" >> $${log_file}
-  echo "Time Zone: ${time_zone}" >> $${log_file}
+  echo "Enable public IP address for nodes ${enable_public_ip}" >> $${log_file}
   echo "Create DR cluster : ${create_dr_cluster}" >> $${log_file}
 }
 
 # Install Redis
 install_redis() {
-#  echo "Setting time zone..." >> $${log_file} && \
-#  sudo timedatectl set-timezone "${time_zone}" && \
-#  timedatectl >> $${log_file} && \
   echo "Installing Redis..." >> $${log_file}
   sudo yum install wget dnsutils net-tools -y && \
   echo "net.ipv4.ip_local_port_range = 30000 65535" | sudo tee -a /etc/sysctl.conf && \
@@ -61,15 +58,26 @@ wait_for_services() {
 # Create Redis cluster
 create_redis_cluster() {
   echo "Creating Redis cluster:" >> $${log_file}
-  echo "sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
+  if [[ "${enable_public_ip}" == "true" ]]; then
+    echo "sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
       external_addr ${node_external_ips} \
       name ${cluster_name} register_dns_suffix \
       username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
 
-  sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
-    external_addr ${node_external_ips} \
-    name ${cluster_name} register_dns_suffix \
-    username ${cluster_admin_username} password ${cluster_admin_password}
+    sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
+      external_addr ${node_external_ips} \
+      name ${cluster_name} register_dns_suffix \
+      username ${cluster_admin_username} password ${cluster_admin_password}
+  else
+    echo "sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
+      name ${cluster_name} register_dns_suffix \
+      username ${cluster_admin_username} password '\"${cluster_admin_password}\"'" >> $${log_file}
+
+    sudo /opt/redislabs/bin/rladmin cluster create addr ${node_internal_ip} \
+      name ${cluster_name} register_dns_suffix \
+      username ${cluster_admin_username} password ${cluster_admin_password}
+  fi
+  
   echo "Cluster created." >> $${log_file}
 }
 

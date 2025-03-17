@@ -17,7 +17,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.prefix}-ResourceGrp-tf"
+  name     = "${var.prefix}-rsg"
   location = var.primary_region
 }
 
@@ -123,11 +123,11 @@ resource "azurerm_virtual_machine" "vm" {
       cluster_admin_password = var.cluster_admin_password,
       create_dr_cluster = var.create_dr_cluster,
       cluster_name = var.cluster_name,
-      time_zone = var.time_zone,
       redis_user = var.redis_user,
-      node_external_ips  = data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address,
+      node_external_ips  = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address : "N/A",
       node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address,
-      first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address
+      first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address,
+      enable_public_ip = var.enable_public_ip
     }
   )
   }
