@@ -5,7 +5,7 @@ output "public_ips" {
 
 output "public_ips_dr" {
   description = "List of IP addresses for Redis DR nodes"
-  value       = var.create_dr_cluster ? [for pip in data.azurerm_public_ip.pip_dr : pip.ip_address] : null
+  value       = var.create_dr_cluster ? [for pip in azurerm_public_ip.pip_dr : pip.ip_address] : null
   depends_on = [
     azurerm_virtual_network.vnet_dr
   ]

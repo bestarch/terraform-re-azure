@@ -39,10 +39,20 @@ resource "azurerm_subnet" "subnet_dr" {
   
 }
 
-data "azurerm_public_ip" "pip_dr" {
-  for_each           = toset(var.ip_names_dr)
-  name               = each.value
-  resource_group_name = var.resource_grp_containing_pips
+# data "azurerm_public_ip" "pip_dr" {
+#   for_each           = toset(var.ip_names_dr)
+#   name               = each.value
+#   resource_group_name = var.resource_grp_containing_pips
+# }
+
+resource "azurerm_public_ip" "pip_dr" {
+  count               = var.node_count_dr
+  name                = "${var.prefix}-public-ip-dr-${count.index}"
+  location            = var.dr_region
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones = [ "${count.index + 1}" ]
 }
 
 resource "azurerm_network_interface" "nic_dr" {
@@ -54,14 +64,15 @@ resource "azurerm_network_interface" "nic_dr" {
     name                          = "ip-configuration-2"
     subnet_id                     = azurerm_subnet.subnet_dr[count.index].id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = var.enable_public_ip ? data.azurerm_public_ip.pip_dr[var.ip_names_dr[count.index]].id : null
+    public_ip_address_id         = var.enable_public_ip ? azurerm_public_ip.pip_dr[count.index].id : null
+    #public_ip_address_id = var.enable_public_ip ? data.azurerm_public_ip.pip_dr[var.ip_names_dr[count.index]].id : null
   }
 }
 
 resource "azurerm_network_interface_security_group_association" "sg2nic_dr" {
   count = var.create_dr_cluster ? var.node_count_dr : 0
   network_interface_id      = azurerm_network_interface.nic_dr[count.index].id
-  network_security_group_id = azurerm_network_security_group.sg_dr[count.index].id
+  network_security_group_id = azurerm_network_security_group.sg_dr[0].id
 }
 
 resource "azurerm_virtual_machine" "vm_dr" {
@@ -105,7 +116,7 @@ resource "azurerm_virtual_machine" "vm_dr" {
       create_dr_cluster = var.create_dr_cluster,
       cluster_name = var.cluster_name_dr,
       redis_user = var.redis_user,
-      node_external_ips  = var.enable_public_ip ? data.azurerm_public_ip.pip_dr[var.ip_names_dr[count.index]].ip_address : "N/A",
+      node_external_ips  = var.enable_public_ip ? azurerm_public_ip.pip_dr[count.index].ip_address : "N/A",
       node_internal_ip = azurerm_network_interface.nic_dr[count.index].private_ip_address,
       first_node_internal_ip = azurerm_network_interface.nic_dr[0].private_ip_address
       enable_public_ip = var.enable_public_ip
