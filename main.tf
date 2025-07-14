@@ -37,21 +37,21 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = [cidrsubnet(var.vnet_cidr, tostring(var.node_count_primary), tostring(count.index))]
 }
 
-# resource "azurerm_public_ip" "pips" {
-#   count               = var.node_count_primary
-#   name                = "${var.prefix}-public-ip-${count.index}"
-#   location            = var.primary_region
-#   resource_group_name = azurerm_resource_group.rg.name
-#   allocation_method   = "Static"
-#   sku                 = "Standard"
-#   zones = [ "${count.index + 1}" ]
-# }
-
-data "azurerm_public_ip" "pips" {
-  for_each           = toset(var.ip_names)
-  name               = each.value
-  resource_group_name = var.resource_grp_containing_pips
+resource "azurerm_public_ip" "pips" {
+  count               = var.node_count_primary
+  name                = "${var.prefix}-public-ip-${count.index}"
+  location            = var.primary_region
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones = [ "${count.index + 1}" ]
 }
+
+# data "azurerm_public_ip" "pips" {
+#   for_each           = toset(var.ip_names)
+#   name               = each.value
+#   resource_group_name = var.resource_grp_containing_pips
+# }
 
 resource "azurerm_network_interface" "nic" {
   count               = var.node_count_primary
@@ -64,8 +64,8 @@ resource "azurerm_network_interface" "nic" {
     #subnet_id                    = element(azurerm_subnet.subnet.*.id, count.index)
     subnet_id                     = azurerm_subnet.subnet[count.index].id
     private_ip_address_allocation = "Dynamic"
-    #public_ip_address_id         = var.enable_public_ip ? azurerm_public_ip.publicip[count.index].id : null
-    public_ip_address_id = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].id : null
+    public_ip_address_id         = var.enable_public_ip ? azurerm_public_ip.pips[count.index].id : null
+    #public_ip_address_id = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].id : null
   }
 }
 
@@ -124,7 +124,8 @@ resource "azurerm_virtual_machine" "vm" {
       create_dr_cluster = var.create_dr_cluster,
       cluster_name = var.cluster_name,
       redis_user = var.redis_user,
-      node_external_ips  = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address : "N/A",
+      #node_external_ips  = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address : "N/A",
+      node_external_ips  = var.enable_public_ip ? azurerm_public_ip.pips[count.index].ip_address : "N/A",
       node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address,
       first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address,
       enable_public_ip = var.enable_public_ip
