@@ -1,7 +1,7 @@
 variable "prefix" {
   description = "Prefix of the resources to be created"
   type        = string
-  default     = "abhi"
+  default     = "abhirl"
 }
 
 variable "create_dr_cluster" {

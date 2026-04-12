@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0.2"
     }
+    null = {
+      source  = "hashicorp/null"
+      #version = "~> 3.2"
+    }
   }
   required_version = ">= 1.1.0"
 }
@@ -81,6 +85,15 @@ resource "azurerm_network_interface_security_group_association" "sg2nic" {
 #   }
 # }
 
+locals {
+  install_template_vars = {
+    redis_tar_file_location = var.redis_tar_file_location
+    cluster_admin_username  = var.cluster_admin_username
+    cluster_admin_password  = var.cluster_admin_password
+  }
+}
+
+
 resource "azurerm_virtual_machine" "vm" {
   count               = var.node_count_primary
   name                  = "${var.prefix}-vm-${count.index}"
@@ -115,22 +128,100 @@ resource "azurerm_virtual_machine" "vm" {
     computer_name  = "${var.prefix}-vm-${count.index}"
     admin_username = var.username
     admin_password = var.password
+    custom_data = templatefile("${path.module}/files/install.sh",
+      merge(
+        local.install_template_vars, {node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address}
+      )
+    )
+  }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+  tags = var.vm_tag
+}
+
+
+resource "azurerm_subnet" "js_subnet" {
+  name                 = "${var.prefix}-js-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [cidrsubnet(var.vnet_cidr, 1, 1)]
+}
+
+resource "azurerm_public_ip" "pip_js" {
+  name                = "${var.prefix}-js-pip"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones = [ 1 ]
+}
+
+resource "azurerm_network_interface" "nic_js" {
+  name                = "${var.prefix}-nic-js"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.js_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pip_js.id
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "sg2js_nic" {
+  network_interface_id      = azurerm_network_interface.nic_js.id
+  network_security_group_id = azurerm_network_security_group.sg.id
+}
+
+resource "azurerm_virtual_machine" "jump_server" {
+  depends_on = [ azurerm_virtual_machine.vm, azurerm_virtual_machine.vm_dr ]
+  name                  = "${var.prefix}-vm-js"
+  location              = var.primary_region
+  resource_group_name   = azurerm_resource_group.rg.name
+  network_interface_ids = [azurerm_network_interface.nic_js.id]
+  vm_size               = var.test_vm_size
+  zones = [ 1 ]
+
+  # Comment/Uncomment this line to delete the OS disk automatically when deleting the VM
+  delete_os_disk_on_termination = true
+
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "${var.prefix}-myosdisk-js"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Premium_LRS"
+  }
+  os_profile {
+    computer_name  = "${var.prefix}-vm-js"
+    admin_username = var.username
+    admin_password = var.password
     custom_data = templatefile(
-    "${path.module}/${count.index == 0 ? "scripts/create_cluster.sh" : "scripts/join_cluster.sh"}",
-    {
-      redis_tar_file_location = var.redis_tar_file_location,
-      cluster_admin_username = var.cluster_admin_username,
-      cluster_admin_password = var.cluster_admin_password,
-      create_dr_cluster = var.create_dr_cluster,
-      cluster_name = var.cluster_name,
-      redis_user = var.redis_user,
-      #node_external_ips  = var.enable_public_ip ? data.azurerm_public_ip.pips[var.ip_names[count.index]].ip_address : "N/A",
-      node_external_ips  = var.enable_public_ip ? azurerm_public_ip.pips[count.index].ip_address : "N/A",
-      node_internal_ip = azurerm_network_interface.nic[count.index].private_ip_address,
-      first_node_internal_ip = azurerm_network_interface.nic[0].private_ip_address,
-      enable_public_ip = var.enable_public_ip
-    }
-  )
+      "${path.module}/files/configure.sh",
+      merge(
+        local.install_template_vars, {
+        no_of_nodes_per_cluster = var.node_count_primary,
+        no_of_dr_nodes_per_cluster = var.node_count_dr,
+        create_dr_cluster = var.create_dr_cluster,
+        cluster_name = var.cluster_name,
+        dr_cluster_name = var.cluster_name_dr,
+        node_external_ips_joined  = join(" ", azurerm_public_ip.pips[*].ip_address),
+        node_internal_ips_joined = join(" ", azurerm_network_interface.nic[*].private_ip_address),
+        node_external_ips_joined_dr  = join(" ", azurerm_public_ip.pip_dr[*].ip_address),
+        node_internal_ips_joined_dr = join(" ", azurerm_network_interface.nic_dr[*].private_ip_address)
+      })
+    )
   }
   os_profile_linux_config {
     disable_password_authentication = false

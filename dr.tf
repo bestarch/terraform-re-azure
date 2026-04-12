@@ -107,21 +107,11 @@ resource "azurerm_virtual_machine" "vm_dr" {
     computer_name  = "${var.prefix}-vm-dr-${count.index}"
     admin_username = var.username
     admin_password = var.password
-    custom_data = templatefile(
-    "${path.module}/${count.index == 0 ? "scripts/create_cluster.sh" : "scripts/join_cluster.sh"}",
-    {
-      redis_tar_file_location = var.redis_tar_file_location,
-      cluster_admin_username = var.cluster_admin_username,
-      cluster_admin_password = var.cluster_admin_password,
-      create_dr_cluster = var.create_dr_cluster,
-      cluster_name = var.cluster_name_dr,
-      redis_user = var.redis_user,
-      node_external_ips  = var.enable_public_ip ? azurerm_public_ip.pip_dr[count.index].ip_address : "N/A",
-      node_internal_ip = azurerm_network_interface.nic_dr[count.index].private_ip_address,
-      first_node_internal_ip = azurerm_network_interface.nic_dr[0].private_ip_address
-      enable_public_ip = var.enable_public_ip
-    }
-  )
+    custom_data = templatefile("${path.module}/files/install.sh",
+      merge(
+        local.install_template_vars, {node_internal_ip = azurerm_network_interface.nic_dr[count.index].private_ip_address}
+      )
+    )
   }
   os_profile_linux_config {
     disable_password_authentication = false

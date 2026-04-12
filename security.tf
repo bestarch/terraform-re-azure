@@ -48,6 +48,26 @@ resource "azurerm_network_security_rule" "https-api" {
   network_security_group_name = azurerm_network_security_group.sg.name
 }
 
+resource "azurerm_network_security_rule" "redis-re-rules" {
+  name                        = "redis-re-rules"
+  priority                    = 2008
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges = [
+      "21", "53", "80", "443", "1968", "3000", "3333-3345",
+      "3347-3350", "8000", "8002", "8004", "8006", "8070-8071",
+      "8080", "8444", "9080-9081", "9091", "9125", "9443",
+      "20000-29999", "36379-36380"
+    ]  
+  source_address_prefix       = "0.0.0.0/0"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.sg.name
+}
+
+
 resource "azurerm_network_security_rule" "redis-dbs" {
   name                        = "DBs-rule"
   priority                    = 2009
