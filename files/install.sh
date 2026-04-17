@@ -5,6 +5,10 @@ install() {
   log_info "$logger" "Installing Redis..." 
   sudo yum install wget dnsutils net-tools -y && \
   echo "net.ipv4.ip_local_port_range = 30000 65535" | sudo tee -a /etc/sysctl.conf && \
+  echo "DNSStubListener=no" | sudo tee -a /etc/systemd/resolved.conf && \
+  sudo mv /etc/resolv.conf /etc/resolv.conf.orig && \
+  sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf && \
+  sudo service systemd-resolved restart && \
   sudo wget -O "/opt/redis_enterprise" "${redis_tar_file_location}" && \
   log_info "$logger" "Successfully downloaded Redis Enterprise Software package" && \
   sudo tar -xvf "/opt/redis_enterprise" -C /opt/ && \
